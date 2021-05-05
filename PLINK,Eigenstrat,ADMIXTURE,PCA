@@ -1,8 +1,11 @@
 ##Using PLINK
 There are many functions PLINK will do to your data by default, so find the flags necessary to turn off these functions. \
 Some useful ones I use:
-`--keep-allel-order` Use this EVERY TIME you call a plink command, otherwise the order of Allele1 and Allele2 may (or probably will) be flipped in your data. \
-
+`--keep-allel-order`	#Use this EVERY TIME you call a plink command, otherwise the order of Allele1 and Allele2 may (or probably will) be flipped in your data. \
+`--allow-no-sex` 	#PLINK will default to removing individuals that have unassigned sex, use this to force it to keep them.
+`--snps-only` 		#Removes indels from your variant data and keeps only snps
+`--biallelic-only` 	#Removes sites with 2+ alleles
+`--geno 0.9999`		#Removes sites with greater that 0.9999 missing data, so effectively removes a locus with no data
 
 ## convert VCF to PLINK format
 ```
