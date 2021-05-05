@@ -1,0 +1,65 @@
+##Using PLINK
+There are many functions PLINK will do to your data by default, so find the flags necessary to turn off these functions. \
+Some useful ones I use:
+`--keep-allel-order` Use this EVERY TIME you call a plink command, otherwise the order of Allele1 and Allele2 may (or probably will) be flipped in your data. \
+
+
+## convert VCF to PLINK format
+```
+ml plink/1.90beta-4.4-21-May
+
+plink \
+  --vcf IncaModern.vcf.gz \
+  --maf 0.01 \
+  --allow-no-sex \ #PLINK removes individuals without sex assignment by default so always using this flag ensures you keep them.
+  --keep-allele-order \ #ALWAYS use this option otherwise plink will flip allele order
+  --make-bed \
+  --out IncaModern
+```
+expected output files: \
+`.bed`: binary file that contains genotype information. \
+`.bim`: tab-delimited text file that always accompanies a .bed genotype file. It contains variant information, has no header line, and one line per variant with the following six fields: \
+	- Chromosome code (either an integer, or 'X'/'Y'/'XY'/'MT'; '0' indicates unknown) or name \
+	- Variant identifier \
+	- Position in morgans or centimorgans (safe to use dummy value of '0') \
+	- Base-pair coordinate (1-based) \
+	- Allele 1 (usually minor) \
+	- Allele 2 (usually major) \
+`.fam`: tab-delimited text file that always accompanies a .bed genotype file. It contains sample information, has no header line, and one line per sample with the following six fields:
+	- Family ID ('FID') \
+	- Within-family ID ('IID'; cannot be '0') \
+	- Within-family ID of father ('0' if father isn't in dataset) \
+	- Within-family ID of mother ('0' if mother isn't in dataset) \
+	- Sex code ('1' = male, '2' = female, '0' = unknown) \
+	- Phenotype value ('1' = control, '2' = case, '-9'/'0'/non-numeric = missing data if case/control) 
+
+
+## Convert PLINK to Eigenstrat format
+if you're using the conda installed version of plink, you need to fix up the .ind file:
+
+awk -F':' '{print $1,$2}' file.ind | awk '{print $2,$3,$1}' > temp.ind
+mv temp.in    file.ind
+
+## Runing Admixture
+Subset bed files to required individuals:
+```
+module load plink/1.90beta-4.4-21-May
+
+plink --bfile v42.4.1240K_HO \
+	--keep-allele-order \
+	--allow-no-sex \
+	--keep keep_list.txt \
+	--make-bed \
+	--out RefSet_small
+```
+Running admixture:
+```
+ml Admixture/1.3.0
+
+BED_FILE=small_admixture/IncaMod_small_filtMiss.bed
+
+for K in {9..12}; do
+	admixture --cv $BED_FILE $K \
+	| tee log${K}.out
+done
+```
