@@ -74,7 +74,8 @@ plink --bfile <FIRST_input_fileset_prefix> \
 ```
 Where mergelist.txt has the format:
 ```
-S
+SECOND_input.bed SECOND_input.bim SECOND_input.fam
+THIRD_input.bed THIRD_input.bim THIRD_input.fam
 ```
 
 ## Convert PLINK to Eigenstrat format
@@ -94,12 +95,32 @@ indivoutname:    <out>.ind
 ```
 
 ## Subset by individuals in EIGENSTRAT
+Edit the `*.ind` file and change the population to "ignore" for samples you want to remove from the dataset. \
+Then use convertf to convert EIGENSTRAT to EIGENSTRAT format and the output will contain your subsetted individuals. \
+The parfile will have the name `par.EIGENSTRAT.EIGENSTRAT.<name>`
 
 ## Merge datasets in EIGENSTRAT
+Use mergeit, syntax is `mergeit -p parfile`. \
+mergeit documentation: https://github.com/argriffing/eigensoft/blob/master/CONVERTF/README \
+`*.parfile` format:
+```
+geno1: <input1>.geno
+snp1:  <input1>.snp
+ind1:  <input1>.ind
+geno2: <input2>.geno
+snp2:  <input2>.snp
+ind2:  <input2>.ind
+genooutfilename: <output>.geno
+snpoutfilename:	<output>.snp
+indoutfilename:	<output>.ind
+outputformat:	EIGENSTRAT
+docheck:	YES
+hashcheck:	YES
+```
+NB** in the official mergeit documentation, this parfile is incorrect. \
+The documentation reads `genotypeoutname` `snpoutname` `indivoutname`, instead of what is in the above example. \
 
-
-
-## Runing Admixture
+## Running ADMIXTURE
 Requires the `*.bed`, `*.bim`, `*.fam` fileset in the working directory, and then the `*.bed` file is called in the script \
 ```
 ml Admixture/1.3.0
@@ -120,7 +141,7 @@ done
 ADMIXTURE 1.3.0 manual: https://vcru.wisc.edu/simonlab/bioinformatics/programs/admixture/admixture-manual.pdf \
 Useful ADMIXTURE tutorial: https://gaworkshop.readthedocs.io/en/latest/contents/07_admixture/admixture.html \
 
-## Plotting admixture in R
+## Plotting ADMIXTURE in R
 Download the *.Q file for each K value generated \
 Depending on the populations in your `*.ind` file, you may want to download it as well to use as population labelling, \
 or write your own file, as long as the order of populations corresponds to the `*.ind` file, cbind will work to label the right sample. \
@@ -146,3 +167,67 @@ the cv (Cross-Validation) value for each value of K will be buried in the `*log*
 usually `tail *out` will print the sections you need to stdout
 
 ## Running SmartPCA
+Syntax to run smartPCA is `smartpca -p parfile`. \
+SmartPCA documentation: https://github.com/argriffing/eigensoft/blob/master/POPGEN/README \
+Inputs: EIGENSTRAT fileset, and a `*.poplist.txt` file containing one population per line, of the populations in the `*.ind` file. \
+Only populations used to calculate eigenvectors should be in this file, then other populations will be automatically projected. \
+
+Format of the parfile, named `*.smartpca.params.txt`. 
+```
+genotypename:	<path>/<input_name>.geno
+snpname:	<path>/<input_name>.snp
+indivname:	<path>/<input_name>.ind
+evecoutname:	<path>/<ouput_name>.pca.evec.txt
+evaloutname:	<path>/<ouput_name>.pca.eval.txt
+poplistname:	<path>/<ouput_name>.poplist.txt
+lsproject:	YES
+outliermode:	2
+shrinkmode:	YES
+numoutevec:	4
+```
+`poplistname`: If wishing to infer eigenvectors using only individuals from a 
+  subset of populations, and then project individuals from all populations 
+  onto those eigenvectors, this input file contains a list of population names,
+  one population name per line, which will be used to infer eigenvectors.  It is assumed that the population of each individual is specified in the 
+  `*.ind` file.  Default is to use individuals from all populations. \
+`outliermode: 2` Do not remove outliers
+
+## Plotting PCA in R
+Download the `*evec.txt` and `*ind.` file. \
+Depending on your dataset, you will probably want to write a file with the population groups you want to label in the plot, corresponding to the Sample name in the `*ind` and `*evec.txt` files. \
+Make sure the order of individuals in all files is the same, so `cbind` works to merge your data. \
+R script:
+```
+#read in data
+fn = "<path>/<name>.pca.evec.txt"
+evecDat = read.table(fn, col.names=c("Sample", "PC1", "PC2", "PC3", "PC4", "PC5", "PC6", 
+			"PC7", "PC8", "PC9", "PC10", "Population"))
+
+#read in population groups to table for labelling purposes
+populations = read.table("<path>/<name>.popLabels.txt",col.names=c("Sample", "Label"))
+ind = read.table("<path>/<name>.ind", 
+                col.names=c("Sample", "Sex", "Population"))
+
+#bind population colums (horizontally) for labelling first
+mergedPopDat = cbind(ind, populations)
+#merge with evec data
+mergedEvecDat3 = merge(mergedPopDat3, evecDat3, by="Sample")
+
+#plot
+plot(mergedEvecDat$PC1, mergedEvecDat$PC2, col=mergedEvecDat$Label, 
+			pch=as.integer(mergedEvecDat$Label) %% 24, xlab="PC1", ylab="PC2")
+legend("topright", xpd=TRUE, legend=levels(mergedEvecDat$Label), 
+			col=1:length(levels(mergedEvecDat$Label)), pch=1:length(levels(mergedEvecDat$Label)))
+```
+
+## Miscellaneous Useful commands
+
+Renaming SNP ID from the rsID to "CHR_SITE" \
+In `*.bim` files:
+```
+awk '{print $1, "\t", $1"_"$4, "\t", $3, "\t", $4, $5, "\t", $6}' IncaModern.bim > IncaModern.2.bim
+```
+In `*.snp` files:
+```
+awk '{print $2"_"$4, "\t", $2, "\t", $3, "\t", $4, $5, $6}' <old>.snp > <new>.snp
+```
