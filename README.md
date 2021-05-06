@@ -225,7 +225,7 @@ legend("topright", xpd=TRUE, legend=levels(mergedEvecDat$Label),
 Renaming SNP ID from the rsID to "CHR_SITE" \
 In `*.bim` files:
 ```
-awk '{print $1, "\t", $1"_"$4, "\t", $3, "\t", $4, $5, "\t", $6}' IncaModern.bim > IncaModern.2.bim
+awk '{print $1, "\t", $1"_"$4, "\t", $3, "\t", $4, $5, "\t", $6}' <old>.bim > <new>.2.bim
 ```
 In `*.snp` files:
 ```
