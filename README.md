@@ -167,6 +167,7 @@ the cv (Cross-Validation) value for each value of K will be buried in the `*log*
 usually `tail *out` will print the sections you need to stdout
 
 ## Running SmartPCA
+Useful Tutorial on running PCA: https://gaworkshop.readthedocs.io/en/latest/contents/05_pca/pca.html#running-smartpca \
 Syntax to run smartPCA is `smartpca -p parfile`. \
 SmartPCA documentation: https://github.com/argriffing/eigensoft/blob/master/POPGEN/README \
 Inputs: EIGENSTRAT fileset, and a `*.poplist.txt` file containing one population per line, of the populations in the `*.ind` file. \
@@ -230,4 +231,10 @@ awk '{print $1, "\t", $1"_"$4, "\t", $3, "\t", $4, $5, "\t", $6}' <old>.bim > <n
 In `*.snp` files:
 ```
 awk '{print $2"_"$4, "\t", $2, "\t", $3, "\t", $4, $5, $6}' <old>.snp > <new>.snp
+```
+
+Removing rows in a text file by duplicates in a specified colums.\
+e.g. to remove rows with duplicats in column 2:
+```
+awk '!seen[$2]++' in.txt > out.txt
 ```
