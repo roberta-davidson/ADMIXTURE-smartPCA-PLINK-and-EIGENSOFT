@@ -121,6 +121,9 @@ NB** in the official mergeit documentation, this parfile is incorrect. \
 The documentation reads `genotypeoutname` `snpoutname` `indivoutname`, instead of what is in the above example. \
 
 ## Running ADMIXTURE
+Best to pseudohaploidise data if low-coverage or ancient. \
+The ADMIXTURE manual says a minumum of 10,000 markers are necessary for comparing populations betwene continents, \
+but at least 100,000 are better for comparing within a continent. \
 Requires the `*.bed`, `*.bim`, `*.fam` fileset in the working directory, and then the `*.bed` file is called in the script \
 ```
 ml Admixture/1.3.0
