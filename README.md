@@ -1,5 +1,6 @@
-# Analysis-Scripts
-Scripts and notes on how to analyse processed NGS data
+# ADMIXTURE-PCA-PLINK-EIGENSTRAT
+Scripts and notes on how to work with PLINK files, EIGENSTRAT files, converting between them. |
+How to run and plot ADMIXTURE and smartPCA. \
 
 ## Using PLINK
 PLINK is in general very annoying, reccommend to manipulate data in VCF or in EIGENSTRAT formats where possible. \
