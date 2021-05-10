@@ -96,13 +96,21 @@ indivoutname:    <out>.ind
 ```
 
 ## Subset by individuals in EIGENSTRAT
-Edit the `*.ind` file and change the population to "ignore" for samples you want to remove from the dataset. \
+Use poplistname option in convertf \
 Then use convertf to convert EIGENSTRAT to EIGENSTRAT format and the output will contain your subsetted individuals. \
-The parfile will have the name `par.EIGENSTRAT.EIGENSTRAT.<name>`
-To easily change population column to ignore:
+The parfile will have the name `par.EIGENSTRAT.EIGENSTRAT.<name>` 
+Example:
 ```
-awk '{if ($3=="<population_name_to_keep>") print $0; else print $1, $2, "ignore"}' old.ind > new.ind
+genotypename:    v44.3_1240K_public.geno
+snpname:         v44.3_1240K_public.snp
+indivname:       v44.3_1240K_public.ind
+outputformat:    EIGENSTRAT
+genotypeoutname: HGDP_China.geno
+snpoutname:      HGDP_China.snp
+indivoutname:	 HGDP_China.ind
+poplistname:	 poplist_HGDP_China.txt
 ```
+Where the file you give to poplistname has been written to include populations (1 per line) from the `.ind` file that you want to extract.
 
 ## Merge datasets in EIGENSTRAT
 Use mergeit, syntax is `mergeit -p parfile`. \
