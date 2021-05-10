@@ -99,6 +99,10 @@ indivoutname:    <out>.ind
 Edit the `*.ind` file and change the population to "ignore" for samples you want to remove from the dataset. \
 Then use convertf to convert EIGENSTRAT to EIGENSTRAT format and the output will contain your subsetted individuals. \
 The parfile will have the name `par.EIGENSTRAT.EIGENSTRAT.<name>`
+To easily change population column to ignore:
+```
+awk '{if ($3=="<population_name_to_keep>") print $0; else print $1, $2, "ignore"}' old.ind > new.ind
+```
 
 ## Merge datasets in EIGENSTRAT
 Use mergeit, syntax is `mergeit -p parfile`. \
@@ -242,3 +246,4 @@ e.g. to remove rows with duplicats in column 2:
 ```
 awk '!seen[$2]++' in.txt > out.txt
 ```
+
