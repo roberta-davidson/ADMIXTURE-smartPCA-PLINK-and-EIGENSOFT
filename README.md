@@ -157,6 +157,31 @@ done
 ADMIXTURE 1.3.0 manual: https://vcru.wisc.edu/simonlab/bioinformatics/programs/admixture/admixture-manual.pdf \
 Useful ADMIXTURE tutorial: https://gaworkshop.readthedocs.io/en/latest/contents/07_admixture/admixture.html \
 
+## Supervised ADMIXTURE
+If something is known about the relationship between populations, can select populations as fixed source groups of ancestry and infer those ancestries in you test individuals. \
+Requires the flag --supervised and an additional `*.pop` file, this has the same format as the `*.fam` but fixed populations are denoted and those you wish to infer ancestry for have a "-" in the population column. e.g.
+```
+Fam1 Ind1 P1 M1 1 -9
+Fam2 Ind2 P2 M2 1 -9
+- Ind3 P3 M3 1 -9
+- Ind4 P4 M4 1 -9
+- Ind5 P5 M5 1 -9
+```
+Where Fam1 and Fam2 are fixed ancestries and ancestral proportion will be inferred for Ind3-Ind5. \
+Note ADMIXTURE will only run for K=(number of fixed ancestries), it will not infer more ancestries at higher K values than the number you specify in the `*.pop` file \
+Script:
+```
+ml Admixture/1.3.0
+
+cd <path_to_output_directory>
+
+BED_FILE=<path>/<input_file>.bed
+
+for K in {3..12}; do
+		admixture -C 100 -j2 -s time --supervised --cv $BED_FILE $K | tee admixture_5_log${K}.out \
+done
+```
+
 ## Plotting ADMIXTURE in R
 Download the *.Q file for each K value generated \
 Depending on the populations in your `*.ind` file, you may want to download it as well to use as population labelling, \
