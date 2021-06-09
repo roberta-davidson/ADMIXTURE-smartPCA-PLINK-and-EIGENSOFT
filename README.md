@@ -287,5 +287,5 @@ awk '{if ($1=="Sample1"||$1=="Sample2"||$1=="Sample3") print $0; else print $1, 
 ```
 Find and replace strings in text file. `\b` denotes word boundary
 ```
-gsed -i 's/\bPopovic\b/TIW/g' <file>.txt
+gsed -i 's/\b<OLD_STRING>\b/<NEW_STRING>/g' <file>.txt
 ```
