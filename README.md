@@ -285,3 +285,7 @@ Editing `.ind` file to set population name to 'ignore' for individuals other tha
 awk '{if ($1=="Sample1"||$1=="Sample2"||$1=="Sample3") print $0; else print $1, $2, "ignore"}' v44.3_1240K_public.ind > v44.3_1240K_public.subset.ind
 
 ```
+Find and replace strings in text file. `\b` denotes word boundary
+```
+gsed -i 's/\bPopovic\b/TIW/g' <file>.txt
+```
