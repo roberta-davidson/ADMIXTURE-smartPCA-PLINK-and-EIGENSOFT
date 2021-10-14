@@ -200,7 +200,7 @@ poplistname:	<path>/<ouput_name>.poplist.txt
 lsproject:	YES
 outliermode:	2
 shrinkmode:	YES
-numoutevec:	4
+numoutevec:	10
 ```
 `poplistname`: If wishing to infer eigenvectors using only individuals from a 
   subset of populations, and then project individuals from all populations 
