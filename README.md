@@ -1,18 +1,20 @@
 # ADMIXTURE-PCA-PLINK-EIGENSTRAT
-Scripts and notes on how to work with PLINK files, EIGENSTRAT files, converting between them. |
-How to run and plot ADMIXTURE and smartPCA. \
+- Scripts and notes on how to work with PLINK files, EIGENSTRAT files, converting between them. \
+- How to run and plot ADMIXTURE and smartPCA. 
 
 ## Using PLINK
 PLINK is in general very annoying, reccommend to manipulate data in VCF or in EIGENSTRAT formats where possible. \
 There are many functions PLINK will do to your data by default, so find the flags necessary to turn off these functions. \
 Some useful ones I use: \
-`--keep-allele-order`	Use this EVERY SINGLE TIME you call a plink command, otherwise the order of Allele1 and Allele2 may (or probably will) be flipped in your data. \
-`--allow-no-sex` 	PLINK will default to removing individuals that have unassigned sex, use this to force it to keep them. \
-`--snps-only` 		Removes indels from your variant data and keeps only snps \
-`--biallelic-only` Removes sites with 2+ alleles \
-`--indiv-sort 0` PLINK default re-orders your data by individual name, this keeps them the same order as the `*.fam` file \
-`--geno 0.9999`	Removes sites with greater that 0.9999 missing data, so effectively removes a locus with no data \
-`--extract`/`--exclude` Extracts or exlcludes variants based on a .txt file list of all variant IDs
+- `--keep-allele-order`	Use this EVERY SINGLE TIME you call a plink command, otherwise the order of Allele1 and Allele2 may (or probably will) be flipped in your data. \
+- `--allow-no-sex` 	PLINK will default to removing individuals that have unassigned sex, use this to force it to keep them. \
+- `--snps-only` 		Removes indels from your variant data and keeps only snps \
+- `--biallelic-only`	Removes sites with 2+ alleles \
+- `--indiv-sort 0` PLINK default re-orders your data by individual name, this keeps them the same order as the `*.fam` file \
+- `--geno xx` removes sites with missingness greater than a given thrshold. PLINK by default filters snps with >0.1 missingness, so use `--geno 1.0` to keep all sites. `--geno 0.999999`	Removes sites no data \
+- `--mind` similar to geno, but sets a threshold of missingness per individual. \
+- `--extract`/`--exclude` Extracts or exlcludes variants based on a .txt file list of all variant IDs
+- `--keep`/`--remove` keep or remove individuals based on a supplied list in a .txt file with corresponding family ID nd within family IDs (or population & individual names). 
 
 Keep the PLINK manual handy: https://www.cog-genomics.org/plink/1.9/
 
@@ -31,11 +33,17 @@ expected output files: \
 `.bed`: binary file that contains genotype information. \
 `.bim`: tab-delimited text file that always accompanies a .bed genotype file. It contains variant information, has no header line, and one line per variant with the following six fields: \
 	- Chromosome code (either an integer, or 'X'/'Y'/'XY'/'MT'; '0' indicates unknown) or name \
-	- Variant identifier \
-	- Position in morgans or centimorgans \
+	- Variant identifier (either rsID or "CHR_POS")\
+	- Position in morgans or centimorgans (can leave as 0.0)\
 	- Base-pair coordinate (1-based) \
 	- Allele 1 (usually minor) \
 	- Allele 2 (usually major) \
+Example:
+```
+1	1_752566     	0.0      	752566 G A
+1	rs12124819     	0.020242       	776546 A G
+8	8_129184555     1.291846    	129184555 C T
+```
 `.fam`: tab-delimited text file that always accompanies a .bed genotype file. It contains sample information, has no header line, and one line per sample with the following six fields:
 	- Family ID ('FID') \
 	- Within-family ID ('IID'; cannot be '0') \
@@ -43,6 +51,12 @@ expected output files: \
 	- Within-family ID of mother ('0' if mother isn't in dataset) \
 	- Sex code ('1' = male, '2' = female, '0' = unknown) \
 	- Phenotype value ('1' = control, '2' = case, '-9'/'0'/non-numeric = missing data if case/control) 
+Example:
+```
+CentralCoast 	I0971 0 0 2 1
+SouthCentralHighlands 	PML5 0 0 0 1
+NorthChile 	I2540 0 0 1 1
+```
 
 The flag `--make-bed` tells PLINK to output the `*.bed`, `*.bim`, `*.fam` fileset, called the PACKEDPED format. \
 There are other PLINK formats but this is the best for working with PLINK and EIGENSOFT downstream. \
@@ -98,19 +112,21 @@ indivoutname:    <out>.ind
 ## Subset by individuals in EIGENSTRAT
 Use poplistname option in convertf \
 Then use convertf to convert EIGENSTRAT to EIGENSTRAT format and the output will contain your subsetted individuals. \
+The syntax to use convertf is `convertf -p parfile`
 The parfile will have the name `par.EIGENSTRAT.EIGENSTRAT.<name>` 
 Example:
 ```
-genotypename:    v44.3_1240K_public.geno
-snpname:         v44.3_1240K_public.snp
-indivname:       v44.3_1240K_public.ind
+genotypename:    <input>.geno
+snpname:         <input>.snp
+indivname:       <input>.ind
 outputformat:    EIGENSTRAT
-genotypeoutname: HGDP_China.geno
-snpoutname:      HGDP_China.snp
-indivoutname:	 HGDP_China.ind
-poplistname:	 poplist_HGDP_China.txt
+genotypeoutname: <subset>.geno
+snpoutname:      <subset>.snp
+indivoutname:	 <subset>.ind
+poplistname:	 poplist_<subset>.txt
 ```
-Where the file you give to poplistname has been written to include populations (1 per line) from the `.ind` file that you want to extract.
+Where the file you give to poplistname has been written to include populations (1 per line) from the `.ind` file that you want to extract. \
+Depending on your dataset this may be as simple as listing some popualtions, or you may have to set the population column of the individuals you are removing to 'ignore', and edit the poplist accordingly. 
 
 ## Merge datasets in EIGENSTRAT
 Use mergeit, syntax is `mergeit -p parfile`. \
@@ -145,8 +161,8 @@ cd <path_to_output_directory>
 
 BED_FILE=<path>/<input_file>.bed
 
-for K in {3..12}; do
-		admixture -C 100 -j2 -s time --cv $BED_FILE $K | tee admixture_5_log${K}.out \
+for K in {2..12}; do
+		admixture -C 100 -j2 -s time --cv $BED_FILE $K | tee admixture_log${K}.out \
 done
 ```
 `-C 100` stops the algorithm after 100 iterations \
