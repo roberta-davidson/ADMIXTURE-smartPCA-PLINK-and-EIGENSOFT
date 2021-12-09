@@ -1,18 +1,20 @@
 # ADMIXTURE-PCA-PLINK-EIGENSTRAT
-Scripts and notes on how to work with PLINK files, EIGENSTRAT files, converting between them. |
-How to run and plot ADMIXTURE and smartPCA. \
+- Scripts and notes on how to work with PLINK files, EIGENSTRAT files, converting between them. \
+- How to run and plot ADMIXTURE and smartPCA. 
 
 ## Using PLINK
 PLINK is in general very annoying, reccommend to manipulate data in VCF or in EIGENSTRAT formats where possible. \
 There are many functions PLINK will do to your data by default, so find the flags necessary to turn off these functions. \
 Some useful ones I use: \
-`--keep-allele-order`	Use this EVERY SINGLE TIME you call a plink command, otherwise the order of Allele1 and Allele2 may (or probably will) be flipped in your data. \
-`--allow-no-sex` 	PLINK will default to removing individuals that have unassigned sex, use this to force it to keep them. \
-`--snps-only` 		Removes indels from your variant data and keeps only snps \
-`--biallelic-only` Removes sites with 2+ alleles \
-`--indiv-sort 0` PLINK default re-orders your data by individual name, this keeps them the same order as the `*.fam` file \
-`--geno 0.9999`	Removes sites with greater that 0.9999 missing data, so effectively removes a locus with no data \
-`--extract`/`--exclude` Extracts or exlcludes variants based on a .txt file list of all variant IDs
+- `--keep-allele-order`	Use this EVERY SINGLE TIME you call a plink command, otherwise the order of Allele1 and Allele2 may (or probably will) be flipped in your data. \
+- `--allow-no-sex` 	PLINK will default to removing individuals that have unassigned sex, use this to force it to keep them. \
+- `--snps-only` 		Removes indels from your variant data and keeps only snps \
+- `--biallelic-only`	Removes sites with 2+ alleles \
+- `--indiv-sort 0` PLINK default re-orders your data by individual name, this keeps them the same order as the `*.fam` file \
+- `--geno xx` removes sites with missingness greater than a given thrshold. PLINK by default filters snps with >0.1 missingness, so use `--geno 1.0` to keep all sites. `--geno 0.999999`	Removes sites no data \
+- `--mind` similar to geno, but sets a threshold of missingness per individual. \
+- `--extract`/`--exclude` Extracts or exlcludes variants based on a .txt file list of all variant IDs
+- `--keep`/`--remove` keep or remove individuals based on a supplied list in a .txt file with corresponding family ID nd within family IDs (or population & individual names). 
 
 Keep the PLINK manual handy: https://www.cog-genomics.org/plink/1.9/
 
@@ -31,11 +33,17 @@ expected output files: \
 `.bed`: binary file that contains genotype information. \
 `.bim`: tab-delimited text file that always accompanies a .bed genotype file. It contains variant information, has no header line, and one line per variant with the following six fields: \
 	- Chromosome code (either an integer, or 'X'/'Y'/'XY'/'MT'; '0' indicates unknown) or name \
-	- Variant identifier \
-	- Position in morgans or centimorgans \
+	- Variant identifier (either rsID or "CHR_POS")\
+	- Position in morgans or centimorgans (can leave as 0.0)\
 	- Base-pair coordinate (1-based) \
 	- Allele 1 (usually minor) \
 	- Allele 2 (usually major) \
+Example:
+```
+1	1_752566     	0.0      	752566 G A
+1	rs12124819     	0.020242       	776546 A G
+8	8_129184555     1.291846    	129184555 C T
+```
 `.fam`: tab-delimited text file that always accompanies a .bed genotype file. It contains sample information, has no header line, and one line per sample with the following six fields:
 	- Family ID ('FID') \
 	- Within-family ID ('IID'; cannot be '0') \
@@ -43,6 +51,12 @@ expected output files: \
 	- Within-family ID of mother ('0' if mother isn't in dataset) \
 	- Sex code ('1' = male, '2' = female, '0' = unknown) \
 	- Phenotype value ('1' = control, '2' = case, '-9'/'0'/non-numeric = missing data if case/control) 
+Example:
+```
+CentralCoast 	I0971 0 0 2 1
+SouthCentralHighlands 	PML5 0 0 0 1
+NorthChile 	I2540 0 0 1 1
+```
 
 The flag `--make-bed` tells PLINK to output the `*.bed`, `*.bim`, `*.fam` fileset, called the PACKEDPED format. \
 There are other PLINK formats but this is the best for working with PLINK and EIGENSOFT downstream. \
@@ -98,19 +112,21 @@ indivoutname:    <out>.ind
 ## Subset by individuals in EIGENSTRAT
 Use poplistname option in convertf \
 Then use convertf to convert EIGENSTRAT to EIGENSTRAT format and the output will contain your subsetted individuals. \
+The syntax to use convertf is `convertf -p parfile`
 The parfile will have the name `par.EIGENSTRAT.EIGENSTRAT.<name>` 
 Example:
 ```
-genotypename:    v44.3_1240K_public.geno
-snpname:         v44.3_1240K_public.snp
-indivname:       v44.3_1240K_public.ind
+genotypename:    <input>.geno
+snpname:         <input>.snp
+indivname:       <input>.ind
 outputformat:    EIGENSTRAT
-genotypeoutname: HGDP_China.geno
-snpoutname:      HGDP_China.snp
-indivoutname:	 HGDP_China.ind
-poplistname:	 poplist_HGDP_China.txt
+genotypeoutname: <subset>.geno
+snpoutname:      <subset>.snp
+indivoutname:	 <subset>.ind
+poplistname:	 poplist_<subset>.txt
 ```
-Where the file you give to poplistname has been written to include populations (1 per line) from the `.ind` file that you want to extract.
+Where the file you give to poplistname has been written to include populations (1 per line) from the `.ind` file that you want to extract. \
+Depending on your dataset this may be as simple as listing some popualtions, or you may have to set the population column of the individuals you are removing to 'ignore', and edit the poplist accordingly. 
 
 ## Merge datasets in EIGENSTRAT
 Use mergeit, syntax is `mergeit -p parfile`. \
@@ -145,8 +161,8 @@ cd <path_to_output_directory>
 
 BED_FILE=<path>/<input_file>.bed
 
-for K in {3..12}; do
-		admixture -C 100 -j2 -s time --cv $BED_FILE $K | tee admixture_5_log${K}.out \
+for K in {2..12}; do
+		admixture -C 100 -j2 -s time --cv $BED_FILE $K | tee admixture_log${K}.out \
 done
 ```
 `-C 100` stops the algorithm after 100 iterations \
@@ -156,6 +172,31 @@ done
 
 ADMIXTURE 1.3.0 manual: https://vcru.wisc.edu/simonlab/bioinformatics/programs/admixture/admixture-manual.pdf \
 Useful ADMIXTURE tutorial: https://gaworkshop.readthedocs.io/en/latest/contents/07_admixture/admixture.html \
+
+## Supervised ADMIXTURE
+If something is known about the relationship between populations, can select populations as fixed source groups of ancestry and infer those ancestries in you test individuals. \
+Requires the flag --supervised and an additional `*.pop` file, this has the same format as the `*.fam` but fixed populations are denoted and those you wish to infer ancestry for have a "-" in the population column. e.g.
+```
+Fam1 Ind1 P1 M1 1 -9
+Fam2 Ind2 P2 M2 1 -9
+- Ind3 P3 M3 1 -9
+- Ind4 P4 M4 1 -9
+- Ind5 P5 M5 1 -9
+```
+Where Fam1 and Fam2 are fixed ancestries and ancestral proportion will be inferred for Ind3-Ind5. \
+Note ADMIXTURE will only run for K=(number of fixed ancestries), it will not infer more ancestries at higher K values than the number you specify in the `*.pop` file \
+Script:
+```
+ml Admixture/1.3.0
+
+cd <path_to_output_directory>
+
+BED_FILE=<path>/<input_file>.bed
+
+for K in {3..12}; do
+		admixture -C 100 -j2 -s time --supervised --cv $BED_FILE $K | tee admixture_5_log${K}.out \
+done
+```
 
 ## Plotting ADMIXTURE in R
 Download the *.Q file for each K value generated \
@@ -213,7 +254,8 @@ numoutevec:	10
 Download the `*evec.txt` and `*ind.` file. \
 Depending on your dataset, you will probably want to write a file with the population groups you want to label in the plot, corresponding to the Sample name in the `*ind` and `*evec.txt` files. \
 Make sure the order of individuals in all files is the same, so `cbind` works to merge your data. \
-R script:
+R scripts in base R and ggplot (You choose):
+base R plot:
 ```
 #read in data
 fn = "<path>/<name>.pca.evec.txt"
@@ -236,7 +278,93 @@ plot(mergedEvecDat$PC1, mergedEvecDat$PC2, col=mergedEvecDat$Label,
 legend("topright", xpd=TRUE, legend=levels(mergedEvecDat$Label), 
 			col=1:length(levels(mergedEvecDat$Label)), pch=1:length(levels(mergedEvecDat$Label)))
 ```
+ggplot with faceting:
+```
+library(ggplot2)
+setwd("/Users/robbi/Box/Robbi_PhD/02_Inka_Royal_Ancestry/IncaModern/EAG/") #set working directory
 
+fn = "/Users/robbi/Box/Robbi_PhD/02_Inka_Royal_Ancestry/IncaModern/EAG/pca_1.pca.evec.txt"
+evecDat1 = read.table(fn, col.names=c("Sample", "PC1", "PC2", "PC3", "PC4", "Pop"))
+
+#make colour palette
+colours <- c("blue", "#E2AC36", "#B3493A", "#47271C", "#BCAB7E","#BCAB7E")
+colours <- colours[as.factor(evecDat1$Pop)]  
+
+#define symbols
+shapes <- c(0,0,3,0,0)
+shapes <- shapes[as.factor(evecDat1$Pop)]  
+
+#base plot 1v2
+plot_1v2 <- (
+  plot(evecDat1$PC1, evecDat1$PC2, col = colours, xlab="PC1", ylab="PC2", pch = shapes, cex = 2, lwd=1.5,
+       cex.axis=1.3, cex.lab=1.2, las=1))
+legend("topleft", legend = levels(as.factor(evecDat1$Pop)), col = c("blue", "#E2AC36", "#B3493A", "#47271C", "#BCAB7E","#BCAB7E"),
+       pch = c(0,0,3,0,0), cex = 1.2, bty="o", pt.cex=2, pt.lwd=1.5, scale_fill_discrete(labels = labels))
+#ggplot 1v2
+PC1_2 <- ggplot(evecDat1, #dataset to plot
+              aes(x = PC1, #x-axis is petal width
+                  y = PC2, #y-axis is petal length
+                  color = Pop)) + #each species is represented by a different shape
+  geom_point() + #default scatter plot
+  theme_light() + #light theme with no grey background and with grey lines and axes
+  scale_x_continuous(sec.axis = dup_axis()) + #add duplicated secondary axis on top 
+  scale_y_continuous(sec.axis = dup_axis()) + #add duplicated secondary axis on right
+  theme(panel.grid.major = element_blank(), #remove major gridline
+        panel.grid.minor = element_blank(), #remove minor gridline
+#        legend.justification = c(0, 0), #justification is centered by default, c(1, 0) means bottom right
+#        legend.position = c(0.97, 0.01), #position relative to justification
+#        legend.background = element_rect(color = "grey"), #legend box with grey lines
+#        legend.text = element_text(face = "italic"), #since the legend is species names, display in italics
+        axis.title.x.top = element_blank(), #remove top x-axis title
+        axis.text.x.top = element_blank(), #remove labels on top x-axis
+        axis.title.y.right = element_blank(), #remove right y-axis title
+        axis.text.y.right = element_blank()) + #remove labels on right y-axis
+  scale_shape(labels = c("Mbuti", "Karitiana", "Han", "Basque", "IncaDescendant"), #edit legend labels
+              solid = FALSE) + #force hollow points to increase clarity in case of overlaps
+  labs(x = "PC1 (7.633 %)", #edit x-axis label
+       y = "PC2 (3.975 %)", #edit y-axis label
+       shape = "Population") #edit legend title
+PC1_2 #show plot
+
+#ggplot 1v2
+PC1_3 <- ggplot(evecDat1, #dataset to plot
+                aes(x = PC1, #x-axis is petal width
+                    y = PC3, #y-axis is petal length
+                    color = Pop)) + #each species is represented by a different shape
+  geom_point() + #default scatter plot
+  theme_light() + #light theme with no grey background and with grey lines and axes
+  scale_x_continuous(sec.axis = dup_axis()) + #add duplicated secondary axis on top 
+  scale_y_continuous(sec.axis = dup_axis()) + #add duplicated secondary axis on right
+  theme(panel.grid.major = element_blank(), #remove major gridline
+        panel.grid.minor = element_blank(), #remove minor gridline
+        legend.justification = c(0, 0), #justification is centered by default, c(1, 0) means bottom right
+        #        legend.position = c(0.97, 0.01), #position relative to justification
+        legend.background = element_rect(color = "grey"), #legend box with grey lines
+        #        legend.text = element_text(face = "italic"), #since the legend is species names, display in italics
+        axis.title.x.top = element_blank(), #remove top x-axis title
+        axis.text.x.top = element_blank(), #remove labels on top x-axis
+        axis.title.y.right = element_blank(), #remove right y-axis title
+        axis.text.y.right = element_blank()) + #remove labels on right y-axis
+  scale_shape(labels = c("Mbuti", "Karitiana", "Han", "Basque", "IncaDescendant"), #edit legend labels
+              solid = FALSE) + #force hollow points to increase clarity in case of overlaps
+  labs(x = "PC1 (7.633 %)", #edit x-axis label
+       y = "PC3 (2.650 %)", #edit y-axis label
+       shape = "Population") #edit legend title
+PC1_3 #show plot
+
+#composite 
+library(patchwork)
+PC1_2_patch <- PC1_2 + #prepare a version of gg3 for patchwork design
+      theme(legend.position="none") #remove legend
+PC1_2_patch #show plot
+
+patch <- PC1_2_patch + PC1_3 + #assemble patchwork
+  plot_layout(widths = c(3, 3)) #set width ratio of the 3 panels
+#  plot_annotation(tag_levels = "A") #add plot labels (uppercase Latin letters)
+patch #show plot
+
+ggsave("patch.pdf", width = 12, height = 6) #save in pdf format with size 12 x 6 in
+```
 ## Miscellaneous Useful commands
 
 Renaming SNP ID from the rsID to "CHR_SITE" \
@@ -254,4 +382,13 @@ e.g. to remove rows with duplicats in column 2:
 ```
 awk '!seen[$2]++' in.txt > out.txt
 ```
+Editing `.ind` file to set population name to 'ignore' for individuals other than ones you want to keep. \
+(Only really practical if subsetting for a small number of individuals)
+```
+awk '{if ($1=="Sample1"||$1=="Sample2"||$1=="Sample3") print $0; else print $1, $2, "ignore"}' v44.3_1240K_public.ind > v44.3_1240K_public.subset.ind
 
+```
+Find and replace strings in text file. `\b` denotes word boundary
+```
+gsed -i 's/\b<OLD_STRING>\b/<NEW_STRING>/g' <file>.txt
+```
