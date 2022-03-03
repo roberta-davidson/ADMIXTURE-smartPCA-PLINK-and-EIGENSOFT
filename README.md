@@ -162,7 +162,7 @@ cd <path_to_output_directory>
 BED_FILE=<path>/<input_file>.bed
 
 for K in {2..12}; do
-		admixture -C 100 -j2 -s time --cv $BED_FILE $K | tee admixture_log${K}.out \
+		admixture -C 100 -j2 -s time --cv $BED_FILE $K | tee admixture_log${K}.out
 done
 ```
 `-C 100` stops the algorithm after 100 iterations \
@@ -222,6 +222,78 @@ barplot(t(as.matrix(subset(ordered, select=V1:V6))),
 ```
 the cv (Cross-Validation) value for each value of K will be buried in the `*log*.out` file \
 usually `tail *out` will print the sections you need to stdout
+
+## Plotting Admixture with PONG
+Install: 
+```
+pip install pong
+```
+PONG Manual: http://brown.edu/Research/Ramachandran_Lab/files/pong/pong-manual.pdf
+
+Pong command:
+```
+/Users/robertadavidson/miniconda3/envs/pong/bin/pong -m filemap.txt -n pop_order.txt -i ind2pop.txt
+```
+
+Write a filemap text file that gives paths to the matrix files that are the output of Admixture and similar softwares. \
+
+`Column 1` 
+The runID, a unique label for the Q matrix (e.g. the string “run5_K7”). Note: A runID must begin with a letter (A-Z/a-z), followed by any number of hyphens (-),
+underscores (_), letters, or numbers. Other characters are not allowed in runIDs. Hashmarks (#) can be used in the filemap to indicate the start of a comment.
+
+`Column 2`
+The K value for the Q matrix. Each value of K between Kmin and Kmax must be represented by at least one Q matrix in the filemap; if not, pong will abort.
+
+`Column 3`
+The path to the Q matrix, relative to the location of the filemap. Thus, if the filemap is in the same directory as the Q matrix file, this is just the name of the Q matrix file. Note that the metadata provided in the filemap allow the user to apply pong to Q matrices in multiple directories in the user’s computer. The path cannot contain a hashmark (#) because it will be interpreted as a comment. \
+Example
+```
+k2r1	2	data/run1/pruned_filtered_1kg_phase3.2.Q
+k2r2	2	data/run2/pruned_filtered_1kg_phase3.2.Q
+k2r3	2	data/run3/pruned_filtered_1kg_phase3.2.Q
+k2r4	2	data/run4/pruned_filtered_1kg_phase3.2.Q
+k2r5	2	data/run5/pruned_filtered_1kg_phase3.2.Q
+k2r6	2	data/run6/pruned_filtered_1kg_phase3.2.Q
+k2r7	2	data/run7/pruned_filtered_1kg_phase3.2.Q
+k2r8	2	data/run8/pruned_filtered_1kg_phase3.2.Q
+k3r1	3	data/run1/pruned_filtered_1kg_phase3.3.Q
+k3r2	3	data/run2/pruned_filtered_1kg_phase3.3.Q
+k3r3	3	data/run3/pruned_filtered_1kg_phase3.3.Q
+k3r4	3	data/run4/pruned_filtered_1kg_phase3.3.Q
+k3r5	3	data/run5/pruned_filtered_1kg_phase3.3.Q
+k3r6	3	data/run6/pruned_filtered_1kg_phase3.3.Q
+k3r7	3	data/run7/pruned_filtered_1kg_phase3.3.Q
+k3r8	3	data/run8/pruned_filtered_1kg_phase3.3.Q
+k4r1	4	data/run1/pruned_filtered_1kg_phase3.4.Q
+k4r2	4	data/run2/pruned_filtered_1kg_phase3.4.Q
+k4r3	4	data/run3/pruned_filtered_1kg_phase3.4.Q
+k4r4	4	data/run4/pruned_filtered_1kg_phase3.4.Q
+k4r5	4	data/run5/pruned_filtered_1kg_phase3.4.Q
+```
+Write an ind2pop.txt file that has one population label per line, corresponding to the order of samples in the Admixture output matrices.
+Example:
+```
+Mbuti
+Japanese
+French
+French
+Mayan
+Japanese
+Mayan
+```
+
+optional: Write a file to determine the order populations are plotted in the PONG output bar graph. \
+`Column 1` labels correspond to the ind2pop file
+`Column 2` (Optional) Longer labels for the population
+Example
+```
+Mbuti		Label 1
+French		Label 2
+Japanese	Label 3
+Mayan		Label 4
+```
+Typical PONG output:
+<img width="1019" alt="image" src="https://user-images.githubusercontent.com/78726635/156501053-c0208021-5b12-418c-91aa-b5c597adc7c9.png">
 
 ## Running SmartPCA
 Useful Tutorial on running PCA: https://gaworkshop.readthedocs.io/en/latest/contents/05_pca/pca.html#running-smartpca \
