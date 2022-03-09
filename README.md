@@ -442,11 +442,15 @@ ggsave("patch.pdf", width = 12, height = 6) #save in pdf format with size 12 x 6
 Renaming SNP ID from the rsID to "CHR_SITE" \
 In `*.bim` files:
 ```
-awk '{print $1, "\t", $1"_"$4, "\t", $3, "\t", $4, $5, "\t", $6}' <old>.bim > <new>.2.bim
+awk '{print $1,$1"_"$4,$3,$4,$5,$6}' <old>.bim > <new>.2.bim
 ```
 In `*.snp` files:
 ```
-awk '{print $2"_"$4, "\t", $2, "\t", $3, "\t", $4, $5, $6}' <old>.snp > <new>.snp
+awk '{print $2"_"$4,$2,$3,$4,$5,$6}' <old>.snp > <new>.snp
+```
+Then to replace spaces with tabs:
+```
+sed -i 's/ /\t/g' <file>
 ```
 
 Removing rows in a text file by duplicates in a specified colums.\
