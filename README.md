@@ -151,6 +151,11 @@ The documentation reads `genotypeoutname` `snpoutname` `indivoutname`, instead o
 
 ## Running ADMIXTURE
 Best to pseudohaploidise data if low-coverage or ancient. \
+Also good practice to prune for linkage disequilibrium \
+```
+plink --bfile <data> --keep-allele-order --allow-no-sex --indep-pairwise 50 10 0.1 --make-bed --out <data_LDpruned>
+```
+
 The ADMIXTURE manual says a minumum of 10,000 markers are necessary for comparing populations betwene continents, \
 but at least 100,000 are better for comparing within a continent. \
 Requires the `*.bed`, `*.bim`, `*.fam` fileset in the working directory, and then the `*.bed` file is called in the script \
@@ -175,13 +180,13 @@ Useful ADMIXTURE tutorial: https://gaworkshop.readthedocs.io/en/latest/contents/
 
 ## Supervised ADMIXTURE
 If something is known about the relationship between populations, can select populations as fixed source groups of ancestry and infer those ancestries in you test individuals. \
-Requires the flag --supervised and an additional `*.pop` file, this has the same format as the `*.fam` but fixed populations are denoted and those you wish to infer ancestry for have a "-" in the population column. e.g.
+Requires the flag --supervised and an additional `*.pop` file (with matching prefix), this has the same number of lines as the `*.fam`, one line per individual with the population names if they denote a fixed ancestry and those you wish to infer ancestry for have a "-" instead. e.g.
 ```
-Fam1 Ind1 P1 M1 1 -9
-Fam2 Ind2 P2 M2 1 -9
-- Ind3 P3 M3 1 -9
-- Ind4 P4 M4 1 -9
-- Ind5 P5 M5 1 -9
+Fam1
+Fam2
+-
+-
+-
 ```
 Where Fam1 and Fam2 are fixed ancestries and ancestral proportion will be inferred for Ind3-Ind5. \
 Note ADMIXTURE will only run for K=(number of fixed ancestries), it will not infer more ancestries at higher K values than the number you specify in the `*.pop` file \
