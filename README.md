@@ -93,7 +93,7 @@ SECOND_input.bed SECOND_input.bim SECOND_input.fam
 THIRD_input.bed THIRD_input.bim THIRD_input.fam
 ```
 
-## Convert PLINK to Eigenstrat format
+## Convert between PLINK and Eigenstrat format
 Use EIGENSOFT's CONVERTF for converting formats. \
 CONVERTF manual: https://github.com/argriffing/eigensoft/blob/master/CONVERTF/README \
 The syntax to use convertf is `convertf -p parfile`
@@ -108,6 +108,21 @@ genotypeoutname: <out>.geno
 snpoutname:      <out>.snp
 indivoutname:    <out>.ind
 ```
+Use this (Eigenstrat to Plink) shell script to make conversions qucker and to prevent proliferation of parfiles. \
+`sbatch CONVERTF.sh <in_file_prefix> `
+```
+#!/bin/bash
+in1=$1
+
+convertf -p <(echo "genotypename:       ${in1}.geno
+snpname:        ${in1}.snp
+indivname:      ${in1}.ind
+outputformat:   PACKEDPED
+genotypeoutname:        ${in1}.bed
+snpoutname:     ${in1}.bim
+indivoutname:   ${in1}.fam")
+```
+
 
 ## Subset by individuals in EIGENSTRAT
 Use poplistname option in convertf \
