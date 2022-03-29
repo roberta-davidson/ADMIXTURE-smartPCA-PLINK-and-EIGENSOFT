@@ -327,6 +327,36 @@ numoutevec:	10
   `*.ind` file.  Default is to use individuals from all populations. \
 `outliermode: 2` Do not remove outliers
 
+## Running emu for PCA
+paper: https://academic.oup.com/bioinformatics/article/37/13/1868/6103565?login=true \
+EMU Github & installation instructions: https://github.com/Rosemeis/emu \
+EMU works with PLINK binary filesets and has inbuilt maf filtering. \
+It better compensates for missingness typical of aDNA \
+Requires python 2.7 so create conda environment for that: `conda create -n "emu" python=2.7` \
+To install & build emu:
+```
+git clone https://github.com/Rosemeis/emu.git
+cd emu
+python setup.py build_ext --inplace
+pip3 install -e .
+```
+
+Script to run emu on dataset:
+```
+conda activate emu
+
+DATA=$1
+
+emu --plink ${DATA} \
+	--n_eig 10 \
+	--threads 8 \
+	--maf 0.01 \
+	--out ${DATA} \
+	--maf_save \
+	--sites_save
+```
+
+
 ## Plotting PCA in R
 Download the `*evec.txt` and `*ind.` file. \
 Depending on your dataset, you will probably want to write a file with the population groups you want to label in the plot, corresponding to the Sample name in the `*ind` and `*evec.txt` files. \
