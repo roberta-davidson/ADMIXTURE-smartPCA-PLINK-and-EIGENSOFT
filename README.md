@@ -213,9 +213,7 @@ cd <path_to_output_directory>
 
 BED_FILE=<path>/<input_file>.bed
 
-for K in {3..12}; do
-		admixture -C 100 -j2 -s time --supervised --cv $BED_FILE $K | tee admixture_5_log${K}.out \
-done
+admixture -C 100 -j2 -s time --supervised --cv $BED_FILE $K | tee admixture.out
 ```
 
 ## Plotting ADMIXTURE in R
