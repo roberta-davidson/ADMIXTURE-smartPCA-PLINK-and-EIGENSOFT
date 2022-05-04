@@ -313,6 +313,48 @@ Mayan		Label 4
 Typical PONG output:
 <img width="1019" alt="image" src="https://user-images.githubusercontent.com/78726635/156501053-c0208021-5b12-418c-91aa-b5c597adc7c9.png">
 
+## Plotting Admixture as pie charts on a map
+I have an R script for this, but I found it nicer and quicker to do in QGIS, especially where there are multiple individals at the same location \
+R plot vs QGIS for same data: \
+<img width="460" alt="image" src="https://user-images.githubusercontent.com/78726635/166615916-9a187741-3be5-47b1-a79e-978b96051939.png"> <img width="451" alt="image" src="https://user-images.githubusercontent.com/78726635/166615644-4fd8204b-f5f5-4141-9013-2d4a58004cc9.png">
+
+
+```
+#Initialize packages
+library(maps)
+library(plotrix)
+library(dplyr)
+library(tidyverse)
+library(janitor)
+library(plotly)
+
+setwd("/Users/robertadavidson/Box Sync/Robbi_PhD/Bioinf/Sequencing/Feb2022_SAM/ADMIXTURE_PONG/America_data18")
+
+#read in admix output matrix
+admix <- read.table("/Users/robertadavidson/Box Sync/Robbi_PhD/Bioinf/Sequencing/Feb2022_SAM/ADMIXTURE_PONG/America_data18/data18.2.6.Q",
+                       col.names=c("K1", "K2","K3","K4","K5","K6"))
+admix <- as.data.frame(admix)
+#read in gps coordinates, rows in same sample order as admixture output matric
+gps <- read.table("/Users/robertadavidson/Box Sync/Robbi_PhD/Bioinf/Sequencing/Feb2022_SAM/ADMIXTURE_PONG/America_data18/data18.coord", 
+                  col.names=c("Lat","Lon")) 
+gps <- as.data.frame(gps) 
+gps$ID = as.numeric(as.character(gps$ID))
+
+#plot map
+map(xlim=c(-90,-30), ylim=c(-60,0)) #Plot maps
+map.axes() #Add axes
+#add points
+points(gps$Lon, gps$Lat,
+       cex = 1, col="red", pch=19) #To add just points
+#To add admixture pie plots – here I used K = 6
+for (x in 1:nrow(gps)) {
+    floating.pie(gps$Lon[x], gps$Lat[x], edges=800,
+      c(admix$K1[x], admix$K2[x], admix$K3[x], admix$K4[x],admix$K5[x], admix$K6[x]), 
+      radius=.6, col=c("red","blue", "green", "purple", "orange", "yellow"), alphha=0.6)
+      title(main="K=6", xlab="Longitude", ylab="Latitude") }
+```
+
+
 ## Running SmartPCA
 Useful Tutorial on running PCA: https://gaworkshop.readthedocs.io/en/latest/contents/05_pca/pca.html#running-smartpca \
 Syntax to run smartPCA is `smartpca -p parfile`. \
