@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#requirements Python=2.7
+#requirements Python=3
 
 conda activate emu
 
