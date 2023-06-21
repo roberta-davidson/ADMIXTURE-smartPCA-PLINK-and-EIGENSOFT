@@ -1,8 +1,25 @@
 library(ggplot2)
-setwd("/Users/robbi/Box/Robbi_PhD/02_Inka_Royal_Ancestry/IncaModern/EAG/") #set working directory
+library(plotly)
+library(ggrepel)
+library(tidyverse)
+library(ggtext)
+library(patchwork)
+library(ggplotify)
+library(cowplot)
 
+## FOR smartPCA output ##
 fn = "/Users/robbi/Box/Robbi_PhD/02_Inka_Royal_Ancestry/IncaModern/EAG/pca_1.pca.evec.txt"
-evecDat1 = read.table(fn, col.names=c("Sample", "PC1", "PC2", "PC3", "PC4", "Pop"))
+evecDat1 = read.table(fn, col.names=c("Sample", "PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10", "Pop"))
+
+#### OR ####
+## FOR emu OUTPUT ##
+fn = "/Users/robertadavidson/Box Sync/Robbi_PhD/05_Chonos/PCA/data41.eigenvecs"
+evecDat1 = read.table(fn, col.names=c("PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10")) #emu output
+ind = "/Users/robertadavidson/Box Sync/Robbi_PhD/05_Chonos/PCA/data41.ind"
+indDat1 = read.table(ind, col.names=c("Sample", "Sex","Pop"))
+evecDat1 = cbind(evecDat1, indDat1)
+#####################
+
 
 #make colour palette
 colours <- c("blue", "#E2AC36", "#B3493A", "#47271C", "#BCAB7E","#BCAB7E")
