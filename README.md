@@ -370,7 +370,7 @@ indivname:	<path>/<input_name>.ind
 evecoutname:	<path>/<ouput_name>.pca.evec.txt
 evaloutname:	<path>/<ouput_name>.pca.eval.txt
 poplistname:	<path>/<ouput_name>.poplist.txt
-lsproject:	YES
+lsqproject:	YES
 outliermode:	2
 shrinkmode:	YES
 numoutevec:	10
