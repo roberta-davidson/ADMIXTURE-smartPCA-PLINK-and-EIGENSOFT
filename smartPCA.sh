@@ -12,7 +12,7 @@ evecoutname:	${in1}.pca.evec.txt
 evaloutname:	${in1}.pca.eval.txt
 poplistname:	${in2}
 missingmode:	NO
-lsproject:	YES
+lsqproject:	YES
 outliermode:	1
 outlieroutname:	${in1}.pca.outlier.txt
 #popsizelimit:	50
